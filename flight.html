@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Answer Time Counter</title>
+  <title>Flight Time Counter</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -13,51 +13,35 @@
     text-align: center;
   "
 >
-  <h1>Answer Time Counter</h1>
+  <h1>Flight Time Counter</h1>
   <br />
-  
-  <h2>Start Point:</h2>
-  <p id="el-start-point">
+
+  <h2>Date & Time:</h2>
+  <p id="datetime">
     <input
-      id="el-start-point-input"
+      id="datetime-input"
       type="datetime-local"
       min="2023-01-01T00:00"
       max="2024-01-01T00:00"
     />
   </p>
-  
-  <h2>Time Passed:</h2>
-  <p id="el-time-passed"></p>
 
-  <h2>Min Wait:</h2>
-  <p id="el-min-wait">
-    <input id="el-min-wait-input" type="number" min="0" max="90" /> days
-  </p>
-
-  <h2>Min Wait Point:</h2>
-  <p id="el-min-wait-date"></p>
-
-  <h2>Left before that:</h2>
-  <p id="el-time-left"></p>
+  <h2>Left Before that:</h2>
+  <p id="datetimeleft-el"></p>
   <script>
     document.addEventListener("DOMContentLoaded", function(event) {
       const DATE_FORMAT = "dddd, MMMM Do YYYY, h:mm:ss a";
 
       const DEFAULTS = {
-        startDate: new Date("2023-06-12T16:39:00+00:00"), // June 12th, 12:39pm EST
-        minWaitDays: 60
+        dateTime: new Date("2023-08-30T10:15:00+00:00"),
       };
 
       const ELEMENTS = {
-        startInput: document.getElementById("el-start-point-input"),
-        minWaitDaysInput: document.getElementById("el-min-wait-input"),
-        minWaitDate: document.getElementById("el-min-wait-date"),
-        startTimePassed: document.getElementById("el-time-passed"),
-        minWaitTimeLeft: document.getElementById("el-time-left")
+        datetimeInput: document.getElementById("datetime-input"),
+        datetimeLeft: document.getElementById("datetimeleft-el")
       };
 
-      ELEMENTS.startInput.value = toDatetimeLocal(DEFAULTS.startDate);
-      ELEMENTS.minWaitDaysInput.value = DEFAULTS.minWaitDays;
+      ELEMENTS.datetimeInput.value = toDatetimeLocal(DEFAULTS.dateTime);
 
       // Function to calculate time difference in days, hours, minutes, and seconds
       function getTimeDifference(startDate, endDate) {
@@ -79,11 +63,14 @@
       function updateCounters() {
         const currentTime = new Date();
 
-        const timePassed = getTimeDifference(new Date(ELEMENTS.startInput.value), currentTime);
-        ELEMENTS.startTimePassed.textContent = `${timePassed.days} days, ${timePassed.hours} hours, ${timePassed.minutes} minutes, ${timePassed.seconds} seconds`;
-
-        const timeLeft = getTimeDifference(currentTime, calculateMinWaitDatetime());
-        ELEMENTS.minWaitTimeLeft.textContent = `${timeLeft.days} days, ${timeLeft.hours} hours, ${timeLeft.minutes} minutes, ${timeLeft.seconds} seconds`;
+        const timeLeft = getTimeDifference(currentTime, moment(ELEMENTS.datetimeInput.value)
+          .utcOffset(0)
+          .set("hour", 13)
+          .set("minute", 0)
+          .set("second", 0)
+          .set("millisecond", 0)
+          .toDate());
+        ELEMENTS.datetimeLeft.textContent = `${timeLeft.days} days, ${timeLeft.hours} hours, ${timeLeft.minutes} minutes, ${timeLeft.seconds} seconds`;
 
         // Update the counters every second
         setTimeout(updateCounters, 1000);
@@ -103,21 +90,6 @@
 
           return YYYY + '-' + MM + '-' + DD + 'T' + HH + ':' + II + ':' + SS;
         }
-
-      function calculateMinWaitDatetime() {
-        const MIN_WAIT_DATETIME = moment(ELEMENTS.startInput.value)
-          .add(ELEMENTS.minWaitDaysInput.value, "days")
-          .utcOffset(0)
-          .set("hour", 13)
-          .set("minute", 0)
-          .set("second", 0)
-          .set("millisecond", 0)
-          .toDate();
-
-        ELEMENTS.minWaitDate.textContent = moment(MIN_WAIT_DATETIME).format(DATE_FORMAT);
-
-        return MIN_WAIT_DATETIME;
-      }
     });
   </script>
 </body>
